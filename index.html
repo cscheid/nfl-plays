@@ -11,9 +11,16 @@
   <script src="main.js"></script>
 </head>
 <body>
-<div class="fullscreen">
-<canvas class="fullscreen" id="webgl" width="" height=""></canvas>
-<h1>NFL Passes, historically</h1>
-</div>
+  <div class="fullscreen">
+    <canvas class="fullscreen" id="webgl" width="" height=""></canvas>
+    <div style="position: absolute; top: 1em; left: 1em">
+      <h1 class="over-fullscreen">NFL Passes, historically</h1>
+    </div>
+    <div style="position: absolute; top: 4em; left: 2em">
+      <span class="over-fullscreen" id="intercepted">Intercepted</span> | 
+      <span class="over-fullscreen" id="incomplete">Incomplete</span> |
+      <span class="over-fullscreen" id="complete">Complete</span>
+    </div>
+  </div>
 </body>
 </html>

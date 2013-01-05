@@ -31,3 +31,8 @@ canvas.fullscreen {
     top: 0px;
     left: 0px;
 }
+
+.over-fullscreen {
+    z-index: 2;
+    position: relative;
+}
