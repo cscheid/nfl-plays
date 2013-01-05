@@ -1,0 +1,53 @@
+<html>
+<head><title>About this visualization...</title>
+  <link rel="stylesheet" href="css/bootstrap.css"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/mchighlight-javascript.css"/>
+  <link rel="stylesheet" href="index.css"/>
+  <script src="lib/jquery-1.6.2.min.js"></script>
+  <script src="lib/jquery.mousewheel.js"></script>
+  <script src="lib/jquery-ui-1.8.16.custom.min.js"></script>
+  <script src="src/facet.js"></script> <!-- replace with facet.min.js when you're done debugging -->
+  <script src="main.js"></script>
+</head>
+<body>
+  <div class="body">
+    <div class="content">
+      <h1>About</h1>
+      <p>This visualization of all NFL passes was created
+	using <a href="http://cscheid.github.com/facet">Facet</a>
+	by <a href="http://cscheid.net">Carlos Scheidegger</a>.
+      </p>
+      <h2>About the data</h2>
+      <p>There are 200100 passes in this visualization, from the
+	2002-2012 seasons (only regular season games are included). This
+	comprises every pass attempted, regardless of completion or
+	penalty during the play. Currently, each pass has eight
+	attributes stored with it: the quarter, the time elapsed, the
+	down, how many yards until 1st down (or touchdown), the
+	yardline of the play (not the line at which the pass was
+	executed), the total yardage of the play, and whether the pass
+	was intercepted or completed.
+      </p>
+      <p>
+	The dataset was created by a simple python script that parses
+	Brian Burke's dataset posted at his <a href="http://www.advancednflstats.com/2010/04/play-by-play-data.html">Advanced
+	NFL Stats</a> blog.
+      </p>
+      <h2>Why not SVG?</h2>
+      <p>
+	I don't think I could make a sufficiently responsive
+	visualization of 200K datapoints using SVG. If I could, I
+	would have certainly used <a href="http://d3js.org">d3</a>.
+      </p>
+      <h2>It doesn't work!</h2>
+      <p>
+	Facet uses WebGL, so you'll need a fairly recent video card
+	(anything from 2009 vintage on should be ok). You'll also need
+	Google Chrome or Safari. There's a minor bug in Firefox which
+	prevents it from working there. I could write code to have
+	Facet work around it but I have other things to fix, sorry.
+      </p>
+    </div>
+  </div>
+</body>

@@ -4,6 +4,7 @@
   <link rel="stylesheet" href="css/style.css"/>
   <link rel="stylesheet" href="css/fullscreen.css"/>
   <link rel="stylesheet" href="css/mchighlight-javascript.css"/>
+  <link rel="stylesheet" href="index.css"/>
   <script src="lib/jquery-1.6.2.min.js"></script>
   <script src="lib/jquery.mousewheel.js"></script>
   <script src="lib/jquery-ui-1.8.16.custom.min.js"></script>
@@ -17,10 +18,17 @@
       <h1 class="over-fullscreen">NFL Passes, historically</h1>
     </div>
     <div style="position: absolute; top: 4em; left: 2em">
-      <span class="over-fullscreen" id="intercepted">Intercepted</span> | 
-      <span class="over-fullscreen" id="incomplete">Incomplete</span> |
-      <span class="over-fullscreen" id="complete">Complete</span>
+      <span class="over-fullscreen query-button" id="intercepted">Intercepted</span> | 
+      <span class="over-fullscreen query-button" id="incomplete">Incomplete</span> |
+      <span class="over-fullscreen query-button" id="complete">Complete</span>
     </div>
-  </div>
+    <div id="help" style="position: absolute; bottom: 0.5em; left: 0.5em">
+      Drag and zoom (with your scroll-wheel or shift-drag) to
+      navigate. Hover and click the play attributes and outcomes to
+      interact. (Click to hide this help.)<br>
+      <span style="font-size: 85%">
+      Data from Brian Burke's <a href="http://www.advancednflstats.com/2010/04/play-by-play-data.html">Advanced
+	NFL Stats</a> blog. About <a href="about.html">this visualization</a> </span>
+    </div>
 </body>
 </html>

@@ -1,0 +1,8 @@
+.query-button:hover {
+    font-weight: bold;
+    cursor:pointer;
+}
+
+.selected {
+    font-weight: bold;
+}
