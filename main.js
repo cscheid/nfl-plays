@@ -53,6 +53,10 @@ $().ready(function() {
         var unselected_color = Shade.parameter("vec4", Shade.vec(0,0,0,0.05));
         var selected_color = Shade.parameter("vec4", Shade.color("#1f77b4", 0.2));
         var selection_enabled = Shade.parameter("float", 0);
+        var pointsize = Shade.parameter("float", 0);
+        var pointweight = Shade.parameter("float", 0);
+        Facet.UI.parameter_slider({ element: "#pointsize",   parameter: pointsize,   min: -3, max: 3 });
+        Facet.UI.parameter_slider({ element: "#pointweight", parameter: pointweight, min: -3, max: 3 });
 
         var sel_kind   = Shade.parameter("float", 0);
 
@@ -110,18 +114,6 @@ $().ready(function() {
                        .click(fix_selection(selection));
                });
 
-        // var intercepted_selection = make_selection({completed:  0, intercepted: 1, bias:  1});
-        // var complete_selection    = make_selection({completed:  1, intercepted: 0, bias:  1});
-        // var incomplete_selection  = make_selection({completed: -1, intercepted: 0, bias: -1});
-
-        // $("#intercepted").hover(intercepted_selection, function() { hover_out_function(); });
-        // $("#complete")   .hover(complete_selection,    function() { hover_out_function(); });
-        // $("#incomplete") .hover(incomplete_selection,  function() { hover_out_function(); });
-
-        // $("#intercepted").click(fix_selection(intercepted_selection));
-        // $("#complete")   .click(fix_selection(complete_selection));
-        // $("#incomplete") .click(fix_selection(incomplete_selection));
-
         var is_selected = selection_enabled.eq(1).and(sel_kind.eq(kind));
 
         var final_color = Shade.ifelse(selection_enabled.eq(0), Shade.vec(0,0,0,0.1),
@@ -168,14 +160,15 @@ $().ready(function() {
             }
         });
 
+        var base_diameter = interactor.zoom.mul(100).pow(0.666).mul(pointsize.exp());
+        var multiplier = Shade.ifelse(is_selected, diameter_multiplier, 1);
+        var final_diameter = base_diameter.mul(multiplier);
+
         Facet.Scene.add(Facet.Marks.dots({
             position: interactor.camera(pt),
-            fill_color: final_color,
+            fill_color: final_color.mul(Shade.vec(1,1,1,pointweight.exp())),
             stroke_width: -1,
-            point_diameter: Shade.ifelse(
-                is_selected, 
-                interactor.zoom.mul(100).pow(0.666).mul(diameter_multiplier), 
-                interactor.zoom.mul(100).pow(0.666)),
+            point_diameter: final_diameter,
             elements: data.length/7
         }));
     });
