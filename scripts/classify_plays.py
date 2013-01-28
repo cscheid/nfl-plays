@@ -85,11 +85,11 @@ class FieldGoal(object):
         self.yd = int_from_re(self.fg_yardage_re, desc)
         if 'is good' in desc:
             self.outcome = 0
-        if 'is no good' in desc:
+        elif 'is no good' in desc:
             self.outcome = 1
-        if 'aborted' in desc:
+        elif 'aborted' in desc:
             self.outcome = 2
-        if 'blocked' in desc:
+        elif 'blocked' in desc:
             self.outcome = 3
         else:
             self.outcome = 4
@@ -150,6 +150,8 @@ def classify_play(desc):
             return OnsideKick(desc)
         else:
             return Kick(desc)
+    if 'spiked' in desc:
+        return Spike(desc)
     if 'back to pass' in desc:
         return Rush(desc)
     if 'pass' in desc:
@@ -180,8 +182,6 @@ def classify_play(desc):
         return Kneel(desc)
     if ') penalty' in desc:
         return PenaltyBeforeSnap(desc)
-    if 'spiked' in desc:
-        return Spike(desc)
     if 'was penalized' in desc:
         return PenaltyBeforeSnap(desc)
     if rush_re.search(odesc):
