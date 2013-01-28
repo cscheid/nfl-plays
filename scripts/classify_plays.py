@@ -160,7 +160,7 @@ def classify_play(desc):
         return Punt(desc)
     if 'extra point' in desc:
         return PAT(desc)
-    if 'field goal' in desc:
+    if 'yard field goal' in desc:
         return FieldGoal(desc)
     if 'sacked' in desc:
         return Sack(desc)
