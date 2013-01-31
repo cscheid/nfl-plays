@@ -64,9 +64,9 @@ class Punt(object):
         self.id = 4
         self.kind = "punt"
         if 'aborted' in desc:
-            self.outcome = 1
-        elif 'blocked' in desc:
             self.outcome = 2
+        elif 'blocked' in desc:
+            self.outcome = 3
         else:
             self.outcome = 0
         self.yd = int_from_re(self.punt_yardage_re, desc)
@@ -258,7 +258,7 @@ f.next()
 
 plays = []
 
-for l in f:
+for j, l in enumerate(f):
     row = list(l[i] for i in [1,2,3,6,7,8,9])
     qtr, mn, sec, down, togo, ydline, desc = row
     
@@ -278,7 +278,7 @@ for l in f:
     except ValueError: ydline = -1
 
     play = classify_play(desc)
-    plays.append((curtime, down, togo, ydline, play))
+    plays.append((curtime, down, togo, ydline, play, j))
 
     # print "%s%d, %d, %d, %d, %s" % (", " if not first else "", curtime, down, togo, ydline, play.attrs())
     # first = False
@@ -289,8 +289,8 @@ def play_comp(p1, p2):
     return 0
 
 plays.sort(play_comp)
-for i, (curtime, down, togo, ydline, play) in enumerate(plays):
-    print "%s%d, %d, %d, %d, %s" % (", " if i <> 0 else "", curtime, down, togo, ydline, play.attrs())
+for i, (curtime, down, togo, ydline, play, j) in enumerate(plays):
+    print "%s%d, %d, %d, %d, %s, %d" % (", " if i <> 0 else "", curtime, down, togo, ydline, play.attrs(), j)
 
 print "]"
 

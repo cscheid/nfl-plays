@@ -1,4 +1,14 @@
 var all_plays;
+var play_grid = [];
+var plays_csv;
+var play_kind = [];
+
+function find(collection, filter) {
+    for (var i = 0; i < collection.length; i++) {
+        if (filter(collection[i], i, collection)) return i;
+    }
+    return -1;
+}
 
 $().ready(function() {
 
@@ -11,9 +21,6 @@ $().ready(function() {
     canvas.width = width;
     canvas.height = height;
 
-    interactor = Facet.UI.center_zoom_interactor({
-        width: width, height: height, zoom: 2/3
-    });
     var interactor = Facet.UI.center_zoom_interactor({
         width: width,
         height: height,
@@ -23,9 +30,31 @@ $().ready(function() {
     });
     var gl = Facet.init(canvas, {
         clearColor: [1,1,1,1],
-        interactor: interactor
-    });
+        interactor: interactor,
+        mousedown: function(event) {
+            pt.set(vec.make([event.facetX, event.facetY]));
+            var time = time_of_pt.evaluate(), yard = yard_of_pt.evaluate();
+            var coord = (3600 - ~~(time + 0.5)) * 100 + ~~(yard + 0.5);
+            if (!_.isUndefined(play_grid[coord])) {
+                var q = d3.select("#play-list-table")
+                    .selectAll("tr")
+                    .data(_.map(play_grid[coord].slice(0, 20), function(i) {
+                        return [plays_csv[i], play_kind[i]];
+                    }));
+                q.enter().append("tr");
+                q.exit().remove();
 
+                var q2 = q.selectAll("td")
+                    .data(function(row) {
+                        return _.pairs(row[0]);
+                    });
+                q2.enter().append("td");
+                q2.text(function(d) { return d[1]; });
+            }
+            return true;
+        }
+    });
+   
     var pointsize = Shade.parameter("float", 0);
     var pointweight = Shade.parameter("float", 0);
     Facet.UI.parameter_slider({ element: "#pointsize",   parameter: pointsize,   min: -3, max: 3 });
@@ -33,6 +62,14 @@ $().ready(function() {
 
     var time_scale = Shade.Scale.linear({ domain: [3600, 0], range: [0, 100]});
     var yard_scale = Shade.Scale.linear({ domain: [100, 0],  range: [0, 20]});
+
+    var time_inv_scale = Shade.Scale.linear({ range: [3600, 0], domain: [0, 100]});
+    var yard_inv_scale = Shade.Scale.linear({ range: [100, 0],  domain: [0, 20]});
+
+    var pt = Shade.parameter("vec2");
+    var unproj = interactor.camera.unproject(pt);
+    var time_of_pt = time_inv_scale(unproj.x());
+    var yard_of_pt = yard_inv_scale(unproj.y());
 
     Facet.Scene.add(Facet.Marks.lines({
         elements: 10,
@@ -96,6 +133,10 @@ $().ready(function() {
         { id: 13, caption: "Under Review" }
     ];
 
+    d3.csv("data/combined.csv", function(result) {
+        plays_csv = result;
+    });
+
     d3.select("#play-kinds-div")
         .selectAll("span")
         .data(play_kinds)
@@ -114,7 +155,8 @@ $().ready(function() {
             };
         });
 
-    Facet.Net.json("data/sorted_plays.json", function(full_data) {
+    Facet.Net.json("data/plays.json", function(full_data) {
+        var n_columns = 8;
         var parameters_by_kind =
             [ 
                 { selected_color: Shade.color("#1f77b4", 0.5),  unselected_color: Shade.vec(0,0,0,0.02), diameter: 2},
@@ -141,25 +183,33 @@ $().ready(function() {
             454709, 458821, 469785,
             470754, 471008, 471134
         ], function(line, i) {
-            var result = full_data.slice(prev * 7, line * 7);
+            var result = full_data.slice(prev * n_columns, line * n_columns);
+            for (var j=prev; j<line; ++j) {
+                var yd = result[(j-prev)*n_columns+3], curtime = result[(j-prev)*n_columns];
+                if (_.isUndefined(play_grid[(3600 - curtime) * 100 + yd])) {
+                    play_grid[(3600 - curtime) * 100 + yd] = [];
+                }
+                play_grid[(3600 - curtime) * 100 + yd].push(result[(j-prev)*n_columns+7]);
+                play_kind[(j-prev)*n_columns+7] = i;
+            }
             prev = line;
             var data = new Float32Array(result);
             var secs = Facet.attribute_buffer({
                 vertex_array: data,
                 item_size: 1,
-                stride: 28,
+                stride: n_columns * 4,
                 offset: 0
             });
             var ydline = Facet.attribute_buffer({
                 vertex_array: data,
                 item_size: 1,
-                stride: 28,
+                stride: n_columns * 4,
                 offset: 12
             });
             var outcome = Shade(Facet.attribute_buffer({
                 vertex_array: data,
                 item_size: 1,
-                stride: 28,
+                stride: n_columns * 4,
                 offset: 24
             }));
             var kind = Shade(i);
@@ -188,16 +238,10 @@ $().ready(function() {
                     fill_color: final_color,
                     stroke_width: -1,
                     point_diameter: final_diameter,
-                    elements: data.length/7
+                    elements: data.length/n_columns
                 })
             };
         });
-        function find(collection, filter) {
-            for (var i = 0; i < collection.length; i++) {
-                if (filter(collection[i], i, collection)) return i;
-            }
-            return -1;
-        }
         all_plays = {
             find: function(kind) {
                 var i = find(plays_by_kind, function(play) { return play.kind === kind; });
