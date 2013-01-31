@@ -31,6 +31,9 @@ $().ready(function() {
     Facet.UI.parameter_slider({ element: "#pointsize",   parameter: pointsize,   min: -3, max: 3 });
     Facet.UI.parameter_slider({ element: "#pointweight", parameter: pointweight, min: -3, max: 3 });
 
+    var time_scale = Shade.Scale.linear({ domain: [3600, 0], range: [0, 100]});
+    var yard_scale = Shade.Scale.linear({ domain: [100, 0],  range: [0, 20]});
+
     Facet.Scene.add(Facet.Marks.lines({
         elements: 10,
         position: function(index, which) { 
@@ -57,7 +60,7 @@ $().ready(function() {
         var align = ["center", "center", "center", "center", "center",
                      "right", "right", "right"];
         for (var i=0; i<pts.length; ++i) {
-            Facet.Scene.add(Facet.Text.string_batch({
+            Facet.Scene.add(Facet.Text.outline({
                 font: font,
                 string: strs[i],
                 size: scale[i],
@@ -70,6 +73,10 @@ $().ready(function() {
                 }
             }));
         }
+    });
+               
+    var outcome_colormap = Shade.Scale.ordinal({ 
+        range: Shade.Colors.Brewer.category10()
     });
 
     var play_kinds = [
@@ -149,18 +156,25 @@ $().ready(function() {
                 stride: 28,
                 offset: 12
             });
+            var outcome = Shade(Facet.attribute_buffer({
+                vertex_array: data,
+                item_size: 1,
+                stride: 28,
+                offset: 24
+            }));
             var kind = Shade(i);
-            
-            var pt = Shade.vec(
-                Shade(3600).sub(secs).div(3600).mul(100),
-                Shade(100).sub(ydline).div(100).mul(20)
-            );
+
+            var pt = Shade.vec(time_scale(secs), yard_scale(ydline));
 
             var unselected_color = Shade.parameter("vec4", Shade.vec(0,0,0,0.05));
+            var selected_color = parameters_by_kind[i].selected_color;
+
+            selected_color = outcome_colormap(outcome);
+
             var selection_enabled = Shade.parameter("float", 0);
 
             var is_selected = selection_enabled.eq(1);
-            var final_color = is_selected.ifelse(parameters_by_kind[i].selected_color, Shade.vec(0,0,0,Shade.mul(0.1, pointweight.exp())));
+            var final_color = is_selected.ifelse(selected_color, Shade.vec(0,0,0,Shade.mul(0.1, pointweight.exp())));
 
             var base_diameter = interactor.zoom.mul(100).pow(0.666).mul(pointsize.exp());
             var multiplier = Shade.ifelse(is_selected, parameters_by_kind[i].diameter, 1);
