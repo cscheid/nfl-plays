@@ -3,6 +3,10 @@
     cursor:pointer;
 }
 
+.query-button {
+    margin-right: 1em;
+}
+
 .selected {
     font-weight: bold;
 }
