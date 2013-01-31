@@ -138,9 +138,26 @@ class Unknown(object):
     def attrs(self):
         return "12, 0, 0"
 
+class FumbledSnapHandoff(object):
+    def __init__(self, desc):
+        self.kind = "fumbled snap"
+    def attrs(self):
+        return "13, 0, 0"
+
+class UnderReview(object):
+    def __init__(self, desc):
+        self.kind = "under review"
+    def attrs(self):
+        return "14, 0, 0"
+
 ##############################################################################
 
 rush_re = re.compile(r'[A-Z]\. ?[A-Z][a-z]+ to [A-Z]+ [0-9]+ for')
+
+scramble1_re = re.compile(r'[A-Za-z. ]+ for -?[0-9]+ yard')
+scramble2_re = re.compile(r'[A-Za-z. ]+ to [A-Z]+ -?[0-9]+ for -?[0-9]+ yard')
+scramble3_re = re.compile(r'[A-Za-z. ]+ to [0-9]+ for -?[0-9]+ yard')
+scramble4_re = re.compile(r'[A-Za-z. ]+ lost -?[0-9]+ yard')
 
 def classify_play(desc):
     odesc = desc
@@ -184,8 +201,30 @@ def classify_play(desc):
         return PenaltyBeforeSnap(desc)
     if 'was penalized' in desc:
         return PenaltyBeforeSnap(desc)
+    if 'false start' in desc:
+        return PenaltyBeforeSnap(desc)
     if rush_re.search(odesc):
         return Rush(desc)
+    if 'scrambles' in desc or \
+       'ran ob' in desc or \
+       'pushed ob' in desc:
+        return Rush(desc)
+    if 'fumbles (aborted)' in desc:
+        return FumbledSnapHandoff(desc)
+    if scramble1_re.search(odesc):
+        return Rush(desc)
+    if scramble2_re.search(odesc):
+        return Rush(desc)
+    if scramble3_re.search(odesc):
+        return Rush(desc)
+    if scramble4_re.search(odesc):
+        return Rush(desc)
+    if 'penalty' in desc:
+        return PenaltyBeforeSnap(desc)
+    if 'aborted' in desc:
+        return FumbledSnapHandoff(desc)
+    if 'play under review' in desc:
+        return UnderReview(desc)
     sys.stderr.write("Can't identify play from description: '%s'\n" % odesc)
     return Unknown(desc)
 
