@@ -1,0 +1,6 @@
+* Yardage above 100 and below 0 for clicking
+* Filter plays on table based on selected kinds
+* Facet for picking to get time x yardage, then use grid
+* Fix font
+* Click on play id to show other plays from same game
+* Legends for play outcomes
