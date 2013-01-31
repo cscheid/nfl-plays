@@ -19,51 +19,63 @@ def int_from_re(re, str, ifbad=0):
 class Kick(object):
     kick_yardage_re = re.compile(r'kicks (-?[0-9]+) yard')
     def __init__(self, desc):
+        self.id = 0
         self.kind = "kick"
         self.yd = int_from_re(self.kick_yardage_re, desc)
     def attrs(self):
-        return "0, %d, 0" % self.yd
+        return "%d, %d, 0" % (self.id, self.yd)
 
 class OnsideKick(object):
     onside_kick_yardage_re = re.compile(r'kicks onside (-?[0-9]+) yard')
     def __init__(self, desc):
+        self.id = 1
         self.kind = "onside kick"
         self.yd = int_from_re(self.onside_kick_yardage_re, desc)
     def attrs(self):
-        return "1, %d, 0" % self.yd
+        return "%d, %d, 0" % (self.id, self.yd)
 
 class Pass(object):
     pass_yardage_re = re.compile(r'for (-?[0-9]+) yard')
     def __init__(self, desc):
-        self.kind = "pass kick"
+        self.id = 2
+        self.kind = "pass"
         self.yd = int_from_re(self.pass_yardage_re, desc)
+        if 'intercepted' in desc:
+            self.outcome = 2
+        elif 'incomplete' in desc:
+            self.outcome = 1
+        else:
+            self.outcome = 0
     def attrs(self):
-        return "2, %d, 0" % self.yd
+        return "%d, %d, %d" % (self.id, self.yd, self.outcome)
 
 class Rush(object):
     rush_yardage_re = re.compile(r'for (-?[0-9]+) yard')
     def __init__(self, desc):
+        self.id = 3
         self.kind = "rush"
         self.yd = int_from_re(self.rush_yardage_re, desc)
     def attrs(self):
-        return "3, %d, 0" % self.yd
+        return "%d, %d, 0" % (self.id, self.yd)
 
 class Punt(object):
     punt_yardage_re = re.compile(r'punts (-?[0-9]+) yard')
     def __init__(self, desc):
+        self.id = 4
         self.kind = "punt"
         if 'aborted' in desc:
-            self.outcome = 2
+            self.outcome = 1
         elif 'blocked' in desc:
-            self.outcome = 3
+            self.outcome = 2
         else:
             self.outcome = 0
         self.yd = int_from_re(self.punt_yardage_re, desc)
     def attrs(self):
-        return "4, %d, %d" % (self.yd, self.outcome)
+        return "%d, %d, %d" % (self.id, self.yd, self.outcome)
 
 class PAT(object):
     def __init__(self, desc):
+        self.id = 5
         self.kind = "pat"
         if 'is good' in desc:
             self.outcome = 0
@@ -76,11 +88,12 @@ class PAT(object):
         else:
             self.outcome = 4
     def attrs(self):
-        return "5, 0, %d" % self.outcome
+        return "%d, 0, %d" % (self.id, self.outcome)
 
 class FieldGoal(object):
     fg_yardage_re = re.compile(r'(-?[0-9]+) yard field goal')
     def __init__(self, desc):
+        self.id = 6
         self.kind = "field goal"
         self.yd = int_from_re(self.fg_yardage_re, desc)
         if 'is good' in desc:
@@ -94,61 +107,69 @@ class FieldGoal(object):
         else:
             self.outcome = 4
     def attrs(self):
-        return "6, %d, %d" % (self.yd, self.outcome)
+        return "%d, %d, %d" % (self.id, self.yd, self.outcome)
 
 class Sack(object):
     sack_yardage_re = re.compile(r'(-?[0-9]+) yard')
     def __init__(self, desc):
+        self.id = 7
         self.kind = "sack"
         self.yd = int_from_re(self.sack_yardage_re, desc)
     def attrs(self):
-        return "7, %d, 0" % self.yd
+        return "%d, %d, 0" % (self.id, self.yd)
 
 class TwoPointAttempt(object):
     def __init__(self, desc):
+        self.id = 8
         self.kind = "two-point"
         if 'attempt succeeds' in desc:
             self.outcome = 0
         elif 'attempt fails' in desc:
             self.outcome = 1
     def attrs(self):
-        return "8, 0, %d" % self.outcome
+        return "%d, 0, %d" % (self.id, self.outcome)
 
 class Kneel(object):
     def __init__(self, desc):
+        self.id = 9
         self.kind = "kneel"
     def attrs(self):
-        return "9, 0, 0"
+        return "%d, 0, 0" % self.id
 
 class PenaltyBeforeSnap(object):
     def __init__(self, desc):
+        self.id = 10
         self.kind = "penalty before snap"
     def attrs(self):
-        return "10, 0, 0"
+        return "%d, 0, 0" % self.id
 
 class Spike(object):
     def __init__(self, desc):
+        self.id = 11
         self.kind = "spike"
     def attrs(self):
-        return "11, 0, 0"
+        return "%d, 0, 0" % self.id
 
 class Unknown(object):
     def __init__(self, desc):
+        self.id = 12
         self.kind = "other"
     def attrs(self):
-        return "12, 0, 0"
+        return "%d, 0, 0" % self.id
 
 class FumbledSnapHandoff(object):
     def __init__(self, desc):
+        self.id = 13
         self.kind = "fumbled snap"
     def attrs(self):
-        return "13, 0, 0"
+        return "%d, 0, 0" % self.id
 
 class UnderReview(object):
     def __init__(self, desc):
+        self.id = 14
         self.kind = "under review"
     def attrs(self):
-        return "14, 0, 0"
+        return "%d, 0, 0" % self.id
 
 ##############################################################################
 
@@ -235,6 +256,8 @@ first=True
 f = csv.reader(file('combined.csv'))
 f.next()
 
+plays = []
+
 for l in f:
     row = list(l[i] for i in [1,2,3,6,7,8,9])
     qtr, mn, sec, down, togo, ydline, desc = row
@@ -255,8 +278,23 @@ for l in f:
     except ValueError: ydline = -1
 
     play = classify_play(desc)
+    plays.append((curtime, down, togo, ydline, play))
 
-    print "%s%d, %d, %d, %d, %s" % (", " if not first else "", curtime, down, togo, ydline, play.attrs())
-    first = False
+    # print "%s%d, %d, %d, %d, %s" % (", " if not first else "", curtime, down, togo, ydline, play.attrs())
+    # first = False
+
+def play_comp(p1, p2):
+    if p1[4].id < p2[4].id: return -1
+    if p1[4].id > p2[4].id: return 1
+    return 0
+
+plays.sort(play_comp)
+for i, (curtime, down, togo, ydline, play) in enumerate(plays):
+    print "%s%d, %d, %d, %d, %s" % (", " if i <> 0 else "", curtime, down, togo, ydline, play.attrs())
 
 print "]"
+
+
+
+# to sort plays:
+# sort -s -t',' -n -k6 data/new_plays.json > data/sorted_plays.json
