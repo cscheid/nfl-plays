@@ -60,6 +60,7 @@ $().ready(function() {
                 // under thousands of other plays, so no harm.
                 var play = plays_csv[r];
                 var grid_address = (3600 - (Number(play.min) * 60 + Number(play.sec))) * 100 + Number(play.ydline);
+                console.log(r, grid_address, play);
                 update_play_table(play_grid[grid_address]);
             }
            
@@ -193,7 +194,6 @@ $().ready(function() {
                 var yd      = result[(j-prev)*n_columns+3],
                     curtime = result[(j-prev)*n_columns],
                     csv_id  = result[(j-prev)*n_columns+7];
-                if (csv_id === 45403) debugger;
                 if (_.isUndefined(play_grid[(3600 - curtime) * 100 + yd])) {
                     play_grid[(3600 - curtime) * 100 + yd] = [];
                 }
