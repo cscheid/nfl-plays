@@ -10,6 +10,26 @@ function find(collection, filter) {
     return -1;
 }
 
+function update_play_table(lst) {
+    if (!_.isUndefined(lst)) {
+        d3.select("#play-list-table").selectAll("tr").remove();
+
+        var q = d3.select("#play-list-table")
+            .selectAll("tr")
+            .data(_.map(lst.slice(0, 10), function(i) {
+                return [plays_csv[i], play_kind[i]];
+            }));
+        q.enter().append("tr");
+        // q.exit().remove();
+        var q2 = q.selectAll("td")
+            .data(function(row) {
+                return _.pairs(row[0]);
+            });
+        q2.enter().append("td");
+        q2.text(function(d) { return d[1]; });
+    }
+}
+
 $().ready(function() {
 
     $("#help").click(function() {
@@ -32,25 +52,17 @@ $().ready(function() {
         clearColor: [1,1,1,1],
         interactor: interactor,
         mousedown: function(event) {
-            pt.set(vec.make([event.facetX, event.facetY]));
-            var time = time_of_pt.evaluate(), yard = yard_of_pt.evaluate();
-            var coord = (3600 - ~~(time + 0.5)) * 100 + ~~(yard + 0.5);
-            if (!_.isUndefined(play_grid[coord])) {
-                var q = d3.select("#play-list-table")
-                    .selectAll("tr")
-                    .data(_.map(play_grid[coord].slice(0, 20), function(i) {
-                        return [plays_csv[i], play_kind[i]];
-                    }));
-                q.enter().append("tr");
-                q.exit().remove();
+            Facet.Picker.draw_pick_scene();
+            var r = Facet.Picker.pick(event.facetX, event.facetY);
 
-                var q2 = q.selectAll("td")
-                    .data(function(row) {
-                        return _.pairs(row[0]);
-                    });
-                q2.enter().append("td");
-                q2.text(function(d) { return d[1]; });
+            if (r !== 0) {
+                // technically speaking, 0 is a valid play id, but it's buried
+                // under thousands of other plays, so no harm.
+                var play = plays_csv[r];
+                var grid_address = (3600 - (Number(play.min) * 60 + Number(play.sec))) * 100 + Number(play.ydline);
+                update_play_table(play_grid[grid_address]);
             }
+           
             return true;
         }
     });
@@ -62,14 +74,6 @@ $().ready(function() {
 
     var time_scale = Shade.Scale.linear({ domain: [3600, 0], range: [0, 100]});
     var yard_scale = Shade.Scale.linear({ domain: [100, 0],  range: [0, 20]});
-
-    var time_inv_scale = Shade.Scale.linear({ range: [3600, 0], domain: [0, 100]});
-    var yard_inv_scale = Shade.Scale.linear({ range: [100, 0],  domain: [0, 20]});
-
-    var pt = Shade.parameter("vec2");
-    var unproj = interactor.camera.unproject(pt);
-    var time_of_pt = time_inv_scale(unproj.x());
-    var yard_of_pt = yard_inv_scale(unproj.y());
 
     Facet.Scene.add(Facet.Marks.lines({
         elements: 10,
@@ -184,13 +188,18 @@ $().ready(function() {
             470754, 471008, 471134
         ], function(line, i) {
             var result = full_data.slice(prev * n_columns, line * n_columns);
+            var id_buffer = [];
             for (var j=prev; j<line; ++j) {
-                var yd = result[(j-prev)*n_columns+3], curtime = result[(j-prev)*n_columns];
+                var yd      = result[(j-prev)*n_columns+3],
+                    curtime = result[(j-prev)*n_columns],
+                    csv_id  = result[(j-prev)*n_columns+7];
+                if (csv_id === 45403) debugger;
                 if (_.isUndefined(play_grid[(3600 - curtime) * 100 + yd])) {
                     play_grid[(3600 - curtime) * 100 + yd] = [];
                 }
-                play_grid[(3600 - curtime) * 100 + yd].push(result[(j-prev)*n_columns+7]);
-                play_kind[(j-prev)*n_columns+7] = i;
+                play_grid[(3600 - curtime) * 100 + yd].push(csv_id);
+                play_kind[csv_id] = i;
+                id_buffer.push(csv_id);
             }
             prev = line;
             var data = new Float32Array(result);
@@ -206,12 +215,13 @@ $().ready(function() {
                 stride: n_columns * 4,
                 offset: 12
             });
-            var outcome = Shade(Facet.attribute_buffer({
+            var outcome = Facet.attribute_buffer({
                 vertex_array: data,
                 item_size: 1,
                 stride: n_columns * 4,
                 offset: 24
-            }));
+            });
+            var id = Facet.id_buffer(id_buffer);
             var kind = Shade(i);
 
             var pt = Shade.vec(time_scale(secs), yard_scale(ydline));
@@ -238,7 +248,8 @@ $().ready(function() {
                     fill_color: final_color,
                     stroke_width: -1,
                     point_diameter: final_diameter,
-                    elements: data.length/n_columns
+                    elements: data.length/n_columns,
+                    pick_id: id
                 })
             };
         });

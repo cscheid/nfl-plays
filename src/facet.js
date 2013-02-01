@@ -1591,6 +1591,7 @@ var mat2 = {};
 
 mat2.create = function()
 {
+    debugger;
     var result = new Float32Array(4);
     result.buffer._type = 'matrix';
     return result;
@@ -3986,7 +3987,8 @@ Facet.init = function(canvas, opts)
                                     clearDepth: 1.0,
                                     attributes: {
                                         alpha: true,
-                                        depth: true
+                                        depth: true,
+                                        preserveDrawingBuffer: true
                                     },
                                     highDPS: true
                                   });
@@ -4332,8 +4334,6 @@ Facet.Picker = {
         var ctx = Facet._globals.ctx;
         var buf = new ArrayBuffer(4);
         var result_bytes = new Uint8Array(4);
-        ctx.readPixels(x, y, 1, 1, ctx.RGBA, ctx.UNSIGNED_BYTE, 
-                       result_bytes);
         rb.with_bound_buffer(function() {
             ctx.readPixels(x, y, 1, 1, ctx.RGBA, ctx.UNSIGNED_BYTE, 
                            result_bytes);
@@ -11915,9 +11915,9 @@ Shade.Scale.ordinal = function(opts)
 
     var choose = Shade.Utils.choose(range);
 
-    return function(v) {
+    return Shade(function(v) {
         return choose(v.as_float().add(0.5));
-    };
+    });
 };
 Shade.Scale.linear = function(opts)
 {
