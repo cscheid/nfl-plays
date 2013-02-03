@@ -22,8 +22,14 @@ class Kick(object):
         self.id = 0
         self.kind = "kick"
         self.yd = int_from_re(self.kick_yardage_re, desc)
+        if 'no play' in desc:
+            self.outcome = 2
+        elif 'touchback' in desc:
+            self.outcome = 0
+        else:
+            self.outcome = 1
     def attrs(self):
-        return "%d, %d, 0" % (self.id, self.yd)
+        return "%d, %d, %d" % (self.id, self.yd, self.outcome)
 
 class OnsideKick(object):
     onside_kick_yardage_re = re.compile(r'kicks onside (-?[0-9]+) yard')
@@ -31,8 +37,12 @@ class OnsideKick(object):
         self.id = 1
         self.kind = "onside kick"
         self.yd = int_from_re(self.onside_kick_yardage_re, desc)
+        if 'recovered' in desc:
+            self.outcome = 0
+        else:
+            self.outcome = 1
     def attrs(self):
-        return "%d, %d, 0" % (self.id, self.yd)
+        return "%d, %d, %d" % (self.id, self.yd, self.outcome)
 
 class Pass(object):
     pass_yardage_re = re.compile(r'for (-?[0-9]+) yard')
@@ -184,7 +194,7 @@ def classify_play(desc):
     odesc = desc
     desc = desc.lower()
     if 'kicks' in desc:
-        if 'onside' in desc:
+        if 'kicks onside' in desc:
             return OnsideKick(desc)
         else:
             return Kick(desc)
