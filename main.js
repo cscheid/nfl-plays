@@ -182,7 +182,7 @@ $().ready(function() {
 
         var prev = 0;
         var plays_by_kind = _.map([
-            27557, 28137, 228924, 388137, 417070, 430455, 441403, 454565, 454720, 458832, 469790, 470759, 471013, 471126
+            27557, 28137, 228930, 388146, 417082, 430467, 441416, 454578, 454733, 458845, 469803, 470772, 471026, 471126
         ], function(line, i) {
             var result = full_data.slice(prev * n_columns, line * n_columns);
             var id_buffer = [];
