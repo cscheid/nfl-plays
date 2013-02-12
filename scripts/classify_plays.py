@@ -3,6 +3,7 @@
 import csv
 import sys
 import re
+import json
 
 ##############################################################################
 
@@ -160,23 +161,23 @@ class Spike(object):
     def attrs(self):
         return "%d, 0, 0" % self.id
 
-class Unknown(object):
-    def __init__(self, desc):
-        self.id = 12
-        self.kind = "other"
-    def attrs(self):
-        return "%d, 0, 0" % self.id
+# class Unknown(object):
+#     def __init__(self, desc):
+#         self.id = 12
+#         self.kind = "other"
+#     def attrs(self):
+#         return "%d, 0, 0" % self.id
 
 class FumbledSnapHandoff(object):
     def __init__(self, desc):
-        self.id = 13
+        self.id = 12
         self.kind = "fumbled snap"
     def attrs(self):
         return "%d, 0, 0" % self.id
 
 class UnderReview(object):
     def __init__(self, desc):
-        self.id = 14
+        self.id = 13
         self.kind = "under review"
     def attrs(self):
         return "%d, 0, 0" % self.id
@@ -261,7 +262,6 @@ def classify_play(desc):
 
 ##############################################################################
 
-print "["
 first=True
 f = csv.reader(file('combined.csv'))
 f.next()
@@ -290,21 +290,34 @@ for j, l in enumerate(f):
     play = classify_play(desc)
     plays.append((curtime, down, togo, ydline, play, j))
 
-    # print "%s%d, %d, %d, %d, %s" % (", " if not first else "", curtime, down, togo, ydline, play.attrs())
-    # first = False
-
 def play_comp(p1, p2):
     if p1[4].id < p2[4].id: return -1
     if p1[4].id > p2[4].id: return 1
     return 0
 
 plays.sort(play_comp)
-for i, (curtime, down, togo, ydline, play, j) in enumerate(plays):
-    print "%s%d, %d, %d, %d, %s, %d" % (", " if i <> 0 else "", curtime, down, togo, ydline, play.attrs(), j)
 
-print "]"
+def flatten_play((curtime, down, togo, ydline, play, j)):
+    result = [curtime, down, togo, ydline]
+    attrs = list(int(i) for i in play.attrs().split(', '))
+    result.extend(attrs)
+    result.append(j)
+    return result
 
+flattened_plays = [item for play in plays for item in flatten_play(play)]
 
+counts = [0] * 15
+for play in plays:
+    play = flatten_play(play)
+    counts[play[4]] += 1
+for i in xrange(0, len(counts)-1):
+    counts[i+1] = counts[i+1] + counts[i]
 
-# to sort plays:
-# sort -s -t',' -n -k6 data/new_plays.json > data/sorted_plays.json
+# for i, (curtime, down, togo, ydline, play, j) in enumerate(plays):
+#     print "%s%d, %d, %d, %d, %s, %d" % (", " if i <> 0 else "", curtime, down, togo, ydline, play.attrs(), j)
+
+#fixme
+result = {"plays": flattened_plays,
+          "counts": counts[:-1]}
+
+print json.dumps(result)

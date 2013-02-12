@@ -60,7 +60,6 @@ $().ready(function() {
                 // under thousands of other plays, so no harm.
                 var play = plays_csv[r];
                 var grid_address = (3600 - (Number(play.min) * 60 + Number(play.sec))) * 100 + Number(play.ydline);
-                console.log(r, grid_address, play);
                 update_play_table(play_grid[grid_address]);
             }
            
@@ -161,7 +160,10 @@ $().ready(function() {
         });
 
     Facet.Net.json("data/plays.json", function(full_data) {
+        debugger;
         var n_columns = 8;
+        var counts = full_data.counts;
+        full_data = full_data.plays;
         var parameters_by_kind =
             [ 
                 { selected_color: Shade.color("#1f77b4", 0.5),  unselected_color: Shade.vec(0,0,0,0.02), diameter: 2},
@@ -181,9 +183,12 @@ $().ready(function() {
             ];
 
         var prev = 0;
-        var plays_by_kind = _.map([
-	27564, 28144, 228942, 388164, 417102, 430483, 441423, 454585, 454740, 458852, 469810, 470779, 471033, 471132
-        ], function(line, i) {
+        var plays_by_kind = _.map(
+            // [
+	    //     27564, 28144, 228942, 388164, 417102, 430483, 441423, 454585, 454740, 458852, 469810, 470779, 471033, 471132
+            // ],
+            counts,
+            function(line, i) {
             var result = full_data.slice(prev * n_columns, line * n_columns);
             var id_buffer = [];
             for (var j=prev; j<line; ++j) {
