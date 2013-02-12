@@ -1,3 +1,5 @@
+var play_data;
+var plays_histogram;
 var all_plays;
 var play_grid = [];
 var plays_csv;
@@ -160,6 +162,8 @@ $().ready(function() {
         });
 
     Facet.Net.json("data/plays.json", function(full_data) {
+        play_data = full_data;
+        plays_histogram = make_plays_histogram(play_data, d3.select("#histogram-div"));
         debugger;
         var n_columns = 8;
         var counts = full_data.counts;
