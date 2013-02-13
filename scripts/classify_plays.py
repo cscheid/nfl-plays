@@ -194,6 +194,8 @@ scramble4_re = re.compile(r'[A-Za-z. ]+ lost -?[0-9]+ yard')
 def classify_play(desc):
     odesc = desc
     desc = desc.lower()
+    if 'two-point conversion attempt' in desc:
+        return TwoPointAttempt(desc)
     if 'kicks' in desc:
         if 'kicks onside' in desc:
             return OnsideKick(desc)
@@ -213,8 +215,6 @@ def classify_play(desc):
         return FieldGoal(desc)
     if 'sacked' in desc:
         return Sack(desc)
-    if 'two-point conversion attempt' in desc:
-        return TwoPointAttempt(desc)
     if 'left end' in desc or \
        'right end' in desc or \
        'left guard' in desc or \
