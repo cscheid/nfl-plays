@@ -164,6 +164,7 @@ $().ready(function() {
     Facet.Net.json("data/plays.json", function(full_data) {
         play_data = full_data;
         plays_histogram = make_plays_histogram(play_data, d3.select("#histogram-div"));
+        $("#loading").fadeOut(500);
         debugger;
         var n_columns = 8;
         var counts = full_data.counts;
